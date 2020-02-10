@@ -156,6 +156,14 @@ impl Iterator for Lexer {
 
 impl Lexer {
     pub fn new(input: String) -> Lexer {
+        Lexer::lexer(input, LEFT_DELIM, RIGHT_DELIM)
+    }
+
+    pub fn new_with_delims(input: String, left_delim: &str, right_delim: &str) -> Lexer {
+        Lexer::lexer(input, left_delim, right_delim)
+    }
+
+    fn lexer<T: Into<String>>(input: String, left_delim: T, right_delim: T) -> Lexer {
         let (tx, rx) = channel();
         let mut l = LexerStateMachine {
             input,
@@ -166,8 +174,8 @@ impl Lexer {
             items_sender: tx,
             paren_depth: 0,
             line: 1,
-            left_delim: LEFT_DELIM.to_string(),
-            right_delim: RIGHT_DELIM.to_string(),
+            left_delim: left_delim.into(),
+            right_delim: right_delim.into(),
         };
         thread::spawn(move || l.run());
         Lexer {
@@ -693,5 +701,14 @@ mod tests {
         let items = l.collect::<Vec<_>>();
         let s_ = items.into_iter().map(|i| i.val).join("");
         assert_eq!(s_, r#"something2000"#);
+    }
+
+    #[test]
+    fn test_input_with_delims() {
+        let s = r#"something [[ .foo ]]"#;
+        let l = Lexer::new_with_delims(s.to_owned(), "[[", "]]");
+        let items = l.collect::<Vec<_>>();
+        let s_ = items.into_iter().map(|i| i.val).join("");
+        assert_eq!(s_, s);
     }
 }
