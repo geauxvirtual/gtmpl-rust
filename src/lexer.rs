@@ -109,6 +109,8 @@ struct LexerStateMachine {
     items_sender: Sender<Item>, // channel of scanned items
     paren_depth: usize,         // nesting depth of ( ) exprs
     line: usize,                // 1+number of newlines seen
+    left_delim: String,         // left delimiter
+    right_delim: String,        // right delimiter
 }
 
 #[derive(Debug)]
@@ -164,6 +166,8 @@ impl Lexer {
             items_sender: tx,
             paren_depth: 0,
             line: 1,
+            left_delim: LEFT_DELIM.to_string(),
+            right_delim: RIGHT_DELIM.to_string(),
         };
         thread::spawn(move || l.run());
         Lexer {
@@ -288,11 +292,11 @@ impl LexerStateMachine {
 
     fn lex_text(&mut self) -> State {
         self.width = 0;
-        let x = self.input[self.pos..].find(&LEFT_DELIM);
+        let x = self.input[self.pos..].find(&self.left_delim);
         match x {
             Some(x) => {
                 self.pos += x;
-                let ld = self.pos + LEFT_DELIM.len();
+                let ld = self.pos + self.left_delim.len();
                 let trim = if self.input[ld..].starts_with(LEFT_TRIM_MARKER) {
                     rtrim_len(&self.input[self.start..self.pos])
                 } else {
@@ -318,17 +322,18 @@ impl LexerStateMachine {
     }
 
     fn at_right_delim(&mut self) -> (bool, bool) {
-        if self.input[self.pos..].starts_with(&RIGHT_DELIM) {
+        if self.input[self.pos..].starts_with(&self.right_delim) {
             return (true, false);
         }
-        if self.input[self.pos..].starts_with(&format!("{}{}", RIGHT_TRIM_MARKER, RIGHT_DELIM)) {
+        if self.input[self.pos..].starts_with(&format!("{}{}", RIGHT_TRIM_MARKER, self.right_delim))
+        {
             return (true, true);
         }
         (false, false)
     }
 
     fn lex_left_delim(&mut self) -> State {
-        self.pos += LEFT_DELIM.len();
+        self.pos += self.left_delim.len();
         let trim = self.input[self.pos..].starts_with(LEFT_TRIM_MARKER);
         let after_marker = if trim { LEFT_TRIM_MARKER.len() } else { 0 };
         if self.input[(self.pos + after_marker)..].starts_with(LEFT_COMMENT) {
@@ -364,7 +369,7 @@ impl LexerStateMachine {
             self.pos += RIGHT_TRIM_MARKER.len();
         }
 
-        self.pos += RIGHT_DELIM.len();
+        self.pos += self.right_delim.len();
 
         if trim {
             self.pos += ltrim_len(&self.input[self.pos..]);
@@ -380,7 +385,7 @@ impl LexerStateMachine {
             self.pos += RIGHT_TRIM_MARKER.len();
             self.ignore();
         }
-        self.pos += RIGHT_DELIM.len();
+        self.pos += self.right_delim.len();
         self.emit(ItemType::ItemRightDelim);
         if trim {
             self.pos += ltrim_len(&self.input[self.pos..]);
@@ -513,7 +518,7 @@ impl LexerStateMachine {
                 match c {
                     '.' | ',' | '|' | ':' | ')' | '(' | ' ' | '\t' | '\r' | '\n' => true,
                     // this is what golang does to detect a delimiter
-                    _ => RIGHT_DELIM.starts_with(c),
+                    _ => self.right_delim.starts_with(c),
                 }
             }
             None => false,
