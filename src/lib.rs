@@ -51,3 +51,21 @@ pub fn template<T: Into<Value>>(template_str: &str, context: T) -> Result<String
     tmpl.parse(template_str)?;
     tmpl.render(&Context::from(context)?)
 }
+
+/// Provides simple basic templating given just a template sting and context.
+///
+/// ## Example
+/// ```rust
+/// let output = gtmpl::template_with_delims("Finally! Some [[ . ]] for Rust", "gtmpl", "[[", "]]");
+/// assert_eq!(&output.unwrap(), "Finally! Some gtmpl for Rust");
+/// ```
+pub fn template_with_delims<T: Into<Value>>(
+    template_str: &str,
+    context: T,
+    left_delim: &str,
+    right_delim: &str,
+) -> Result<String, String> {
+    let mut tmpl = Template::default();
+    tmpl.parse_with_delims(template_str, left_delim, right_delim)?;
+    tmpl.render(&Context::from(context)?)
+}

@@ -63,9 +63,31 @@ pub fn parse(
     text: String,
     funcs: HashSet<String>,
 ) -> Result<HashMap<String, Tree>, String> {
+    parse_with_lexer(name, funcs, Lexer::new(text))
+}
+
+pub fn parse_with_delims(
+    name: String,
+    text: String,
+    funcs: HashSet<String>,
+    left_delim: &str,
+    right_delim: &str,
+) -> Result<HashMap<String, Tree>, String> {
+    parse_with_lexer(
+        name,
+        funcs,
+        Lexer::new_with_delims(text, left_delim, right_delim),
+    )
+}
+
+fn parse_with_lexer(
+    name: String,
+    funcs: HashSet<String>,
+    lexer: Lexer,
+) -> Result<HashMap<String, Tree>, String> {
     let mut p = Parser::new(name);
     p.funcs = funcs;
-    p.lex = Some(Lexer::new(text));
+    p.lex = Some(lexer);
     p.parse_tree()?;
     Ok(p.tree_set)
 }
@@ -914,6 +936,26 @@ mod tests_mocked {
         let r = p.parse_tree();
         assert!(r.is_ok());
     }
+
+    // TODO: Figure out how to display with passed in delims vs default
+    //    #[test]
+    //    fn test_display_with_delims() {
+    //        let raw = r#"[[if .]]2000[[else]] 3000 [[end]]"#;
+    //        let mut ts = parse_with_delims(
+    //            String::default(),
+    //            String::from(raw),
+    //            HashSet::default(),
+    //            "[[",
+    //            "]]",
+    //        )
+    //        .unwrap();
+    //        let tree = ts.get_mut("").unwrap();
+    //        if let Some(ref root) = tree.root {
+    //            assert_eq!(raw, format!("{}", root))
+    //        } else {
+    //            assert!(false);
+    //        }
+    //    }
 
     #[test]
     fn test_term() {

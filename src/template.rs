@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::funcs::BUILTINS;
-use crate::parse::{parse, Tree};
+use crate::parse::{parse, parse_with_delims, Tree};
 use gtmpl_value::Func;
 
 /// The main template structure.
@@ -90,6 +90,23 @@ impl Template {
             self.name.clone(),
             text.into(),
             self.funcs.keys().cloned().collect(),
+        )?;
+        self.tree_set.extend(tree_set);
+        Ok(())
+    }
+
+    pub fn parse_with_delims<T: Into<String>>(
+        &mut self,
+        text: T,
+        left_delim: &str,
+        right_delim: &str,
+    ) -> Result<(), String> {
+        let tree_set = parse_with_delims(
+            self.name.clone(),
+            text.into(),
+            self.funcs.keys().cloned().collect(),
+            left_delim,
+            right_delim,
         )?;
         self.tree_set.extend(tree_set);
         Ok(())
