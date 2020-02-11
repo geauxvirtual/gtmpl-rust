@@ -938,24 +938,24 @@ mod tests_mocked {
     }
 
     // TODO: Figure out how to display with passed in delims vs default
-    //    #[test]
-    //    fn test_display_with_delims() {
-    //        let raw = r#"[[if .]]2000[[else]] 3000 [[end]]"#;
-    //        let mut ts = parse_with_delims(
-    //            String::default(),
-    //            String::from(raw),
-    //            HashSet::default(),
-    //            "[[",
-    //            "]]",
-    //        )
-    //        .unwrap();
-    //        let tree = ts.get_mut("").unwrap();
-    //        if let Some(ref root) = tree.root {
-    //            assert_eq!(raw, format!("{}", root))
-    //        } else {
-    //            assert!(false);
-    //        }
+    //#[test]
+    //fn test_display_with_delims() {
+    //    let raw = r#"[[ .foo ]]"#;
+    //    let mut ts = parse_with_delims(
+    //        String::default(),
+    //        String::from(raw),
+    //        HashSet::default(),
+    //        "[[",
+    //        "]]",
+    //    )
+    //    .unwrap();
+    //    let tree = ts.get_mut("").unwrap();
+    //    if let Some(ref root) = tree.root {
+    //        assert_eq!(raw, format!("{}", root))
+    //    } else {
+    //        assert!(false);
     //    }
+    //}
 
     #[test]
     fn test_term() {
