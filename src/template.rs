@@ -150,4 +150,13 @@ mod tests_mocked {
         assert!(t.parse(r#"{{ if eq "bar" "bar" }} 2000 {{ end }}"#).is_ok());
         assert!(t.tree_set.contains_key("foo"));
     }
+
+    #[test]
+    fn test_parse_with_delims() {
+        let mut t = Template::with_name("foo");
+        assert!(t
+            .parse_with_delims(r#"[[ if eq "bar" "bar" ]] 2000 [[ end ]]"#, "[[", "]]")
+            .is_ok());
+        assert!(t.tree_set.contains_key("foo"));
+    }
 }
